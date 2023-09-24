@@ -1,5 +1,8 @@
 # Flow Changelog
 
+## [Unreleased] - 2023-09-23
+- Make faster by removing unnecessary code
+
 ## [Fix broken start commands] - 2023-09-03
 
 ## [Start Commands & Keywords] - 2022-03-16

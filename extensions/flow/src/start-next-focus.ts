@@ -1,21 +1,7 @@
-import { Alert, Color, confirmAlert, Icon, showHUD, Toast } from "@raycast/api";
-import { getCurrentPhase, isFlowInstalled, skipSession, startTimer } from "./utils";
+import { Alert, Color, confirmAlert, Icon, showHUD } from "@raycast/api";
+import { getCurrentPhase, skipSession, startTimer } from "./utils";
 
 export default async function () {
-  const toast = new Toast({
-    title: "Starting next focus",
-    style: Toast.Style.Animated,
-  });
-
-  toast.show();
-
-  if (!(await isFlowInstalled())) {
-    toast.title = "Flow not installed";
-    toast.message = "Install it from: https://flowapp.info/download";
-    toast.style = Toast.Style.Failure;
-    return;
-  }
-
   const phase = await getCurrentPhase();
   if (phase !== "Flow") {
     await skipSession();
@@ -23,8 +9,6 @@ export default async function () {
     await showHUD("Focus started");
     return;
   }
-
-  toast.hide();
 
   const options: Alert.Options = {
     icon: { source: Icon.ExclamationMark, tintColor: Color.Yellow },

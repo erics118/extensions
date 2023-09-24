@@ -1,5 +1,5 @@
 import { getApplications } from "@raycast/api";
-import { runAppleScript } from "run-applescript";
+import { runAppleScript } from "@raycast/utils";
 
 export type Phase = "Flow" | "Break" | "Long Break";
 
@@ -39,4 +39,21 @@ export async function resetTimer() {
 
 export async function quitFlow() {
   await runAppleScript('tell application "Flow" to quit');
+}
+
+export async function showOrHide() {
+  await runAppleScript(`
+tell application "System Events"
+  tell process "Flow"
+    set windowList to every window whose visible is true
+    set windowCount to count of windowList
+  end tell
+end tell
+
+if windowCount > 0 then
+  tell application "Flow" to hide
+else
+  tell application "Flow" to show
+end if
+`)
 }
