@@ -11,14 +11,6 @@ import {
 import TranslationView from "./components/TranslationView";
 import transliterate from "@sindresorhus/transliterate";
 
-interface Values {
-  key?: string;
-  from?: SourceLanguage | "";
-  to?: TargetLanguage;
-  text?: string;
-  translation?: string;
-}
-
 function SwitchLanguagesAction(props: { onSwitchLanguages: () => void }) {
   return (
     <Action
@@ -35,7 +27,7 @@ type LaunchContext = {
   sourceLanguage?: SourceLanguage;
 };
 
-const Command = (props: LaunchProps<{ launchContext?: LaunchContext }>) => {
+export default function Command(props: LaunchProps<{ launchContext?: LaunchContext }>) {
   // Check whether component is called with an existing value for translation
   if (props?.launchContext?.translation) {
     const translation = props?.launchContext?.translation;
@@ -59,25 +51,29 @@ const Command = (props: LaunchProps<{ launchContext?: LaunchContext }>) => {
     });
   }, []);
 
-  const submit = async (values: Values) => {
-    if (!values.text || !values.to) return;
-    setLoading(true);
+  useEffect(() => {
+    const a = async () => {
+      if (!sourceText || !targetLanguage) return;
+      setLoading(true);
 
-    const response = await sendTranslateRequest({
-      text: values.text,
-      targetLanguage: values.to,
-      sourceLanguage: values.from && values.from.length > 0 ? values.from : undefined,
-      onTranslateAction: "none",
-    });
+      const response = await sendTranslateRequest({
+        text: sourceText,
+        targetLanguage: targetLanguage,
+        sourceLanguage: sourceLanguage || undefined,
+        onTranslateAction: "none",
+      });
 
-    setLoading(false);
+      setLoading(false);
 
-    if (!response) return;
+      if (!response) return;
 
-    const { translation, detectedSourceLanguage } = response;
-    setTranslation(translation);
-    setDetectedSourceLanguage(detectedSourceLanguage);
-  };
+      const { translation, detectedSourceLanguage } = response;
+      setTranslation(translation);
+      setDetectedSourceLanguage(detectedSourceLanguage);
+    };
+    a();
+  }, [sourceText, targetLanguage])
+
 
   const switchLanguages = async () => {
     // No action if the source language is not set ("Detect" by default) and we don't have a detected source language
@@ -116,16 +112,16 @@ const Command = (props: LaunchProps<{ launchContext?: LaunchContext }>) => {
     }
   };
 
-  const _t = transliterate(translation);
-  const transliteration = _t == translation ? "" : _t;
+  const transliteration = transliterate(translation);
+  const showTransliteration = transliteration != translation;
 
   return (
     <Form
       actions={
         <ActionPanel>
-          <ActionPanel.Section>
+          {/* <ActionPanel.Section>
             <Action.SubmitForm icon={Icon.ArrowRightCircle} title="Translate" onSubmit={submit} />
-          </ActionPanel.Section>
+          </ActionPanel.Section> */}
           <ActionPanel.Section>
             <Action.CopyToClipboard
               title="Copy Translation"
@@ -151,7 +147,15 @@ const Command = (props: LaunchProps<{ launchContext?: LaunchContext }>) => {
       }
       isLoading={loading}
     >
-      <Form.TextArea id="text" placeholder="Enter or paste text here" value={sourceText} onChange={setSourceText} />
+      <Form.TextArea
+        id="text"
+        placeholder="Enter or paste text here"
+        value={sourceText}
+        onChange={(a) => {
+          setSourceText(a);
+          // submit();
+        }}
+      />
       <Form.Dropdown
         id="from"
         value={sourceLanguage}
@@ -177,9 +181,7 @@ const Command = (props: LaunchProps<{ launchContext?: LaunchContext }>) => {
         ))}
       </Form.Dropdown>
       <Form.TextArea id="translation" value={translation} />
-      <Form.Description title="Transliteration" text={transliteration} />
+      {showTransliteration && <Form.Description title="Transliteration" text={transliteration} />}
     </Form>
   );
 };
-
-export default Command;
